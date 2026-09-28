@@ -143,50 +143,56 @@ if (argc != 3)
     /* =========================
        PROCESS B - CHILD
        ========================= */
-    else
+    
+       else
+{
+    /* Child reads from Pipe 1 */
+    close(pipe_parent_to_child[1]);
+
+    /* Child writes to Pipe 2 */
+    close(pipe_child_to_parent[0]);
+
+    char child_message[BUFFER_SIZE];
+
+    ssize_t child_bytes =
+        read(pipe_parent_to_child[0],
+             child_message,
+             BUFFER_SIZE - 1);
+
+    if (child_bytes == -1)
     {
-        /*
-         * TEMPORARY CHILD CODE
-         *
-         * Your teammate will replace this part
-         * with the case-switching logic.
-         */
-
-        /* Child reads from Pipe 1 */
-        close(pipe_parent_to_child[1]);
-
-        /* Child writes to Pipe 2 */
-        close(pipe_child_to_parent[0]);
-
-        char child_message[BUFFER_SIZE];
-
-        ssize_t child_bytes =
-            read(pipe_parent_to_child[0],
-                 child_message,
-                 BUFFER_SIZE - 1);
-
-        if (child_bytes == -1)
-        {
-            perror("Child error reading from pipe");
-            close(pipe_parent_to_child[0]);
-            close(pipe_child_to_parent[1]);
-            return 1;
-        }
-
-        /* Send message back unchanged for now */
-        if (write(pipe_child_to_parent[1],
-                  child_message,
-                  child_bytes) == -1)
-        {
-            perror("Child error writing to pipe");
-            close(pipe_parent_to_child[0]);
-            close(pipe_child_to_parent[1]);
-            return 1;
-        }
-
+        perror("Child error reading from pipe");
         close(pipe_parent_to_child[0]);
         close(pipe_child_to_parent[1]);
+        return 1;
     }
 
+    /* Switch uppercase to lowercase and lowercase to uppercase */
+    for (int i = 0; i < child_bytes; i++)
+    {
+        if (child_message[i] >= 'a' && child_message[i] <= 'z')
+        {
+            child_message[i] = child_message[i] - 32;
+        }
+        else if (child_message[i] >= 'A' && child_message[i] <= 'Z')
+        {
+            child_message[i] = child_message[i] + 32;
+        }
+    }
+
+    /* Send modified message back to parent */
+    if (write(pipe_child_to_parent[1],
+              child_message,
+              child_bytes) == -1)
+    {
+        perror("Child error writing to pipe");
+        close(pipe_parent_to_child[0]);
+        close(pipe_child_to_parent[1]);
+        return 1;
+    }
+
+    close(pipe_parent_to_child[0]);
+    close(pipe_child_to_parent[1]);
+}
     return 0;
 }
