@@ -9,14 +9,14 @@
 
 int main(int argc, char *argv[])
 {
-    /* Check command-line arguments */
+    /* Check command linee */
 if (argc != 3)
     {
         fprintf(stderr, "Usage: %s input-file output-file\n", argv[0]);
         return 1;
     }
 
-    /* Open input file */
+    /*open input txt */
     int input_fd = open(argv[1], O_RDONLY);
 
     if (input_fd == -1)
@@ -25,7 +25,7 @@ if (argc != 3)
         return 1;
     }
 
-    /* Read message from input file */
+    /*reaingd message from input */
     char message[BUFFER_SIZE];
 
     ssize_t bytes_read = read(input_fd, message, BUFFER_SIZE - 1);
@@ -41,7 +41,7 @@ if (argc != 3)
 
     close(input_fd);
 
-    /* Create two ordinary pipes */
+    /* Create two  pipe */
     int pipe_parent_to_child[2];
     int pipe_child_to_parent[2];
 
@@ -59,7 +59,7 @@ if (argc != 3)
         return 1;
     }
 
-    /* Create child process */
+    /* child process */
     pid_t pid = fork();
 
     if (pid == -1)
@@ -68,18 +68,18 @@ if (argc != 3)
         return 1;
     }
 
-    /* =========================
-       PROCESS A - PARENT
-       ========================= */
+    /* 
+       PROCESS A - PARENT team member Leen
+     */
     if (pid > 0)
     {
-        /* Parent writes to Pipe 1 */
+        /* parent writes Pipe 1 */
         close(pipe_parent_to_child[0]);
 
-        /* Parent reads from Pipe 2 */
+        /* Parent reads pipe 2 */
         close(pipe_child_to_parent[1]);
 
-        /* Send original message to child */
+        /* Sending message to child */
         if (write(pipe_parent_to_child[1], message, bytes_read) == -1)
         {
             perror("Error writing to child");
@@ -91,7 +91,7 @@ if (argc != 3)
 
         close(pipe_parent_to_child[1]);
 
-        /* Receive modified message from child */
+        /* receiving modified message */
         char modified_message[BUFFER_SIZE];
 
         ssize_t modified_bytes =
@@ -111,7 +111,7 @@ if (argc != 3)
 
         close(pipe_child_to_parent[0]);
 
-        /* Open/create output file */
+        /* Open/create output.txt */
         int output_fd = open(
             argv[2],
             O_WRONLY | O_CREAT | O_TRUNC,
@@ -125,7 +125,6 @@ if (argc != 3)
             return 1;
         }
 
-        /* Write modified message to output file */
         if (write(output_fd, modified_message, modified_bytes) == -1)
         {
             perror("Error writing to output file");
@@ -136,20 +135,18 @@ if (argc != 3)
 
         close(output_fd);
 
-        /* Wait for child to finish */
+        
         wait(NULL);
     }
 
-    /* =========================
-       PROCESS B - CHILD
-       ========================= */
+    /* 
+       PROCESS B - CHILD by student lailas
+      */
     
        else
 {
-    /* Child reads from Pipe 1 */
+    
     close(pipe_parent_to_child[1]);
-
-    /* Child writes to Pipe 2 */
     close(pipe_child_to_parent[0]);
 
     char child_message[BUFFER_SIZE];
@@ -167,7 +164,7 @@ if (argc != 3)
         return 1;
     }
 
-    /* Switch uppercase to lowercase and lowercase to uppercase */
+    /* Switcing uppercase to lowercase and lower to uper */
     for (int i = 0; i < child_bytes; i++)
     {
         if (child_message[i] >= 'a' && child_message[i] <= 'z')
@@ -179,8 +176,6 @@ if (argc != 3)
             child_message[i] = child_message[i] + 32;
         }
     }
-
-    /* Send modified message back to parent */
     if (write(pipe_child_to_parent[1],
               child_message,
               child_bytes) == -1)
